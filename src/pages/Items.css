@@ -1,0 +1,6 @@
+.readonly-input {
+    background-color: #f0f0f0; /* Un color más oscuro para indicar que es de solo lectura */
+    color: rgba(0, 0, 0, 0.85); /* Color del texto */
+    cursor: not-allowed; /* Cambiar el cursor para indicar que no es editable */
+  }
+  

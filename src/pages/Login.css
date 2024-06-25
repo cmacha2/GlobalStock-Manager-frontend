@@ -1,0 +1,44 @@
+.login-layout {
+    min-height: auto;
+  }
+  
+  .login-container {
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .login-image {
+    background-image: url('https://res.cloudinary.com/cmacha2/image/upload/v1717680511/logo_panel_3_d5tqxi.png'); /* Cambia esta URL por la imagen que desees */
+    background-size: cover;
+    background-position: center;
+    display: none; /* Ocultar por defecto en pantallas pequeñas */
+  }
+  
+  .login-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .login-form-content {
+    max-width: 400px;
+    width: 100%;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (min-width: 768px) {
+    .login-image {
+      display: block; /* Mostrar la imagen en pantallas más grandes */
+      width: 50%; /* Ocupa la mitad de la pantalla */
+    }
+  
+    .login-form-container {
+      width: 50%; /* Ocupa la mitad de la pantalla */
+    }
+  }
+  
