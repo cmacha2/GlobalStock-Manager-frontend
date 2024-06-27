@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, message, DatePicker, Input, InputNumber } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, message, DatePicker, Input, InputNumber,Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { getItems } from '../services/api';
 import moment from 'moment';
 import './Items.css';
 import { useAuth } from '../contexts/AuthContext';
 import AddProduct from './AddProduct';
+import { useInView } from 'react-intersection-observer';
 
 const { RangePicker } = DatePicker;
 
@@ -38,6 +39,14 @@ const Items = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 100;
+
+  const { ref, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false
+  });
 
   useEffect(() => {
     if (credentialsConfigured) {
@@ -45,22 +54,33 @@ const Items = () => {
     }
   }, [credentialsConfigured]);
 
+  useEffect(() => {
+    if (inView && hasMore) {
+      fetchItems();
+    }
+  }, [inView]);
+
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await getItems(currentUser.uid);
-      const processedItems = response.elements.map(item => {
-        const category = item.categories && item.categories.elements && item.categories.elements[0] ? item.categories.elements[0].name : 'N/A';
-        const subcategory = item.subcategory || 'N/A';
-        const categoryWithSubcategory = category !== 'N/A' && subcategory !== 'N/A' ? getCategoryWithSubcategory(category, subcategory) : category;
-        const stockCount = item.itemStock ? item.itemStock.stockCount : 0;
-        return {
-          ...item,
-          categoryWithSubcategory,
-          stockCount,
-        };
-      });
-      setItems(processedItems);
+      const response = await getItems(currentUser.uid, pageSize, offset);
+      if (response.elements.length === 0) {
+        setHasMore(false);
+      } else {
+        const processedItems = response.elements.map(item => {
+          const category = item.categories && item.categories[0] ? item.categories[0].name : 'N/A';
+          const subcategory = item.subcategory || 'N/A';
+          const categoryWithSubcategory = category !== 'N/A' && subcategory !== 'N/A' ? getCategoryWithSubcategory(category, subcategory) : category;
+          const stockCount = item.itemStock ? item.itemStock.stockCount : 0;
+          return {
+            ...item,
+            categoryWithSubcategory,
+            stockCount,
+          };
+        });
+        setItems(prevItems => [...prevItems, ...processedItems]);
+        setOffset(prevOffset => prevOffset + pageSize);
+      }
     } catch (error) {
       console.error('Error fetching items:', error);
       message.error('Error al cargar los productos');
@@ -71,7 +91,12 @@ const Items = () => {
 
   const columns = [
     {
-      title: 'Nombre',
+      title: 'Quantity',
+      dataIndex: 'stockCount',
+      key: 'stockCount',
+    },
+    {
+      title: 'Name',
       dataIndex: 'name',
       key: 'name',
     },
@@ -103,14 +128,14 @@ const Items = () => {
       onFilter: (value, record) => record.sku ? record.sku.toLowerCase().includes(value.toLowerCase()) : false,
     },
     {
-      title: 'Categoría',
+      title: 'Category',
       dataIndex: 'categoryWithSubcategory',
       key: 'categoryWithSubcategory',
       filters: getFilterOptions(),
       onFilter: (value, record) => record.categoryWithSubcategory === value,
     },
     {
-      title: 'Precio',
+      title: 'Price',
       dataIndex: 'price',
       key: 'price',
       render: (price) => `$${(price / 100).toFixed(2)}`,
@@ -137,18 +162,13 @@ const Items = () => {
       onFilter: (value, record) => record.price / 100 == value,
     },
     {
-      title: 'Cantidad en Stock',
-      dataIndex: 'stockCount',
-      key: 'stockCount',
-    },
-    {
-      title: 'Costo',
+      title: 'Cost',
       dataIndex: 'cost',
       key: 'cost',
       render: (cost) => `$${isNaN(cost) ? '0.00' : (cost / 100).toFixed(2)}`,
     },
     {
-      title: 'Fecha Modificación',
+      title: 'Modification Date',
       dataIndex: 'modifiedTime',
       key: 'modifiedTime',
       render: (time) => moment(time).format('YYYY-MM-DD'),
@@ -182,7 +202,14 @@ const Items = () => {
       <Button type="primary" onClick={() => setIsModalVisible(true)} style={{ marginBottom: 16 }}>
         + Agregar Producto
       </Button>
-      <Table columns={columns} dataSource={items} loading={loading} rowKey="id" />
+      <Table
+        columns={columns}
+        dataSource={items}
+        loading={loading}
+        rowKey="id"
+        pagination={false} // Disable default pagination
+      />
+      <div ref={ref} style={{ height: 20 }} />
       <AddProduct 
         isModalVisible={isModalVisible} 
         setIsModalVisible={setIsModalVisible} 

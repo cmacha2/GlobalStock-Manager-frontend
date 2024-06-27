@@ -57,7 +57,7 @@ const Navbar = () => {
   return (
     <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ color: 'white', fontSize: '20px' }}>
-        Milazzo Stock Manager
+       GlobalStock Manager
       </div>
       {currentUser && (
         <Dropdown overlay={menu} trigger={['click']}>
