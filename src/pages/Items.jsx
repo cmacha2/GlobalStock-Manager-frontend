@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Table, message, DatePicker, Input, InputNumber, Button, Drawer } from 'antd';
-import { SearchOutlined, MenuOutlined } from '@ant-design/icons';
+import { Table, message, DatePicker, Input, InputNumber, Button, Modal } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { getItems } from '../services/api';
 import moment from 'moment';
 import './Items.css';
@@ -35,7 +35,8 @@ const Items = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isProductModalVisible, setIsProductModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 100;
@@ -80,13 +81,19 @@ const Items = () => {
     }
   }, [inView, hasMore, fetchItems]);
 
+  const handleShowProductModal = (product) => {
+    setSelectedProduct(product);
+    setIsProductModalVisible(true);
+  };
 
   const columns = [
     {
       title: 'Image',
       dataIndex: 'menuItem',
       key: 'image',
-      render: (menuItem) => menuItem && menuItem.imageFilename ? <img src={menuItem.imageFilename} alt="product" className="product-image" /> : 'No Image',
+      render: (menuItem, record) => menuItem && menuItem.imageFilename 
+        ? <img src={menuItem.imageFilename} alt="product" className="product-image" onClick={() => handleShowProductModal(record)} /> 
+        : 'No Image',
     },
     {
       title: 'Quantity',
@@ -227,6 +234,24 @@ const Items = () => {
         setIsModalVisible={setIsModalVisible} 
         fetchItems={handleProductAdded} 
       />
+      <Modal
+        title="Product Details"
+        visible={isProductModalVisible}
+        onCancel={() => setIsProductModalVisible(false)}
+        footer={null}
+      >
+        {selectedProduct && (
+          <div className="product-details">
+            <img src={selectedProduct.menuItem.imageFilename} alt="product" className="product-image-large" />
+            <p><strong>Name:</strong> {selectedProduct.name}</p>
+            <p><strong>SKU:</strong> {selectedProduct.sku}</p>
+            <p><strong>Category:</strong> {selectedProduct.subcategory}</p>
+            <p><strong>Price:</strong> ${(selectedProduct.price / 100).toFixed(2)}</p>
+            <p><strong>Cost:</strong> ${(selectedProduct.cost / 100).toFixed(2)}</p>
+            <p><strong>Stock Count:</strong> {selectedProduct.stockCount}</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

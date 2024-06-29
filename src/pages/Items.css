@@ -10,20 +10,29 @@
 
 /* Items.css */
 
+.product-image {
+  width: 50px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+}
+
+.product-image-large {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
 .table-container {
-  overflow-x: auto;
+  margin-bottom: 16px;
 }
 
 .add-product-btn {
   width: 100%;
   margin-bottom: 16px;
-}
-
-.product-image {
-  width: 100px; /* Ajusta el tamaño de la imagen según sea necesario */
-  height: auto;
-  display: block;
-  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
