@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Table, message, DatePicker, Input, InputNumber, Button } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Table, message, DatePicker, Input, InputNumber, Button, Drawer } from 'antd';
+import { SearchOutlined, MenuOutlined } from '@ant-design/icons';
 import { getItems } from '../services/api';
 import moment from 'moment';
 import './Items.css';
@@ -35,6 +35,7 @@ const Items = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 100;
@@ -200,18 +201,20 @@ const Items = () => {
 
   return (
     <div>
-      <Button type="primary" onClick={handleAddProduct} style={{ marginBottom: 16 }}>
+      <Button type="primary" onClick={handleAddProduct} className="add-product-btn">
         + Agregar Producto
       </Button>
-      <Table
-        columns={columns}
-        dataSource={items}
-        loading={loading}
-        rowKey="id"
-        pagination={false}
-      />
-      {hasMore && <div ref={ref} style={{ height: 20, margin: '20px 0' }} />}
-      {!hasMore && <div style={{ textAlign: 'center', margin: '20px 0' }}>No hay más productos</div>}
+      <div className="table-container">
+        <Table
+          columns={columns}
+          dataSource={items}
+          loading={loading}
+          rowKey="id"
+          pagination={false}
+        />
+        {hasMore && <div ref={ref} style={{ height: 20, margin: '20px 0' }} />}
+        {!hasMore && <div style={{ textAlign: 'center', margin: '20px 0' }}>No hay más productos</div>}
+      </div>
       <AddProduct 
         isModalVisible={isModalVisible} 
         setIsModalVisible={setIsModalVisible} 

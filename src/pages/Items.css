@@ -4,3 +4,22 @@
     cursor: not-allowed; /* Cambiar el cursor para indicar que no es editable */
   }
   
+  main {
+    padding: 16px !important;
+  }
+
+.table-container {
+  overflow-x: auto;
+
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    margin-bottom: 16px;
+  }
+
+  .add-product-btn {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}

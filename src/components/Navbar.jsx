@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Avatar, Menu, Dropdown, Modal, Form, Input, Button, message } from 'antd';
-import { UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Avatar, Menu, Dropdown, Modal, Form, Input, Button, message, Drawer } from 'antd';
+import { UserOutlined, SettingOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getCredentials, saveCredentials as saveUserCredentials } from '../services/api';
+import './Navbar.css';
 
 const { Header } = Layout;
 
 const Navbar = () => {
   const { currentUser, logout, saveCredentials } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -54,15 +56,41 @@ const Navbar = () => {
     </Menu>
   );
 
+  const showDrawer = () => {
+    setDrawerVisible(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerVisible(false);
+  };
+
   return (
-    <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div style={{ color: 'white', fontSize: '20px' }}>
-       GlobalStock Manager
+    <Header className="header">
+      <div className="header-title">
+        GlobalStock Manager
       </div>
       {currentUser && (
-        <Dropdown overlay={menu} trigger={['click']}>
-          <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
-        </Dropdown>
+        <>
+          <MenuOutlined className="menu-icon" onClick={showDrawer} />
+          <Dropdown overlay={menu} trigger={['click']}>
+            <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />
+          </Dropdown>
+          <Drawer
+            title="Menú"
+            placement="right"
+            onClose={closeDrawer}
+            visible={drawerVisible}
+          >
+            <Menu>
+              <Menu.Item key="1" icon={<SettingOutlined />} onClick={() => { setIsModalVisible(true); closeDrawer(); }}>
+                Configuración
+              </Menu.Item>
+              <Menu.Item key="2" icon={<LogoutOutlined />} onClick={() => { navigate('/login', { replace: true }); logout(); closeDrawer(); }}>
+                Cerrar Sesión
+              </Menu.Item>
+            </Menu>
+          </Drawer>
+        </>
       )}
       <Modal
         title="Configurar Credenciales"
@@ -77,7 +105,7 @@ const Navbar = () => {
           <Form.Item name="mId" label="Merchant ID" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item>
+          <Form.Item style={{ textAlign: 'center' }}>
             <Button type="primary" htmlType="submit">Guardar</Button>
           </Form.Item>
         </Form>
