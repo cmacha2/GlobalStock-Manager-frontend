@@ -80,7 +80,14 @@ const Items = () => {
     }
   }, [inView, hasMore, fetchItems]);
 
+
   const columns = [
+    {
+      title: 'Image',
+      dataIndex: 'menuItem',
+      key: 'image',
+      render: (menuItem) => menuItem && menuItem.imageFilename ? <img src={menuItem.imageFilename} alt="product" className="product-image" /> : 'No Image',
+    },
     {
       title: 'Quantity',
       dataIndex: 'stockCount',

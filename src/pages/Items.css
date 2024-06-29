@@ -8,9 +8,22 @@
     padding: 16px !important;
   }
 
+/* Items.css */
+
 .table-container {
   overflow-x: auto;
+}
 
+.add-product-btn {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.product-image {
+  width: 100px; /* Ajusta el tamaño de la imagen según sea necesario */
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
