@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Table, message, DatePicker, Input, InputNumber,Button } from 'antd';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Table, message, DatePicker, Input, InputNumber, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { getItems } from '../services/api';
 import moment from 'moment';
@@ -20,10 +20,6 @@ const subcategoryOptions = {
   Pendants: ['Diamond', 'Normal']
 };
 
-const getCategoryWithSubcategory = (category, subcategory) => {
-  return `${subcategory} ${category}`;
-};
-
 const getFilterOptions = () => {
   const filters = [];
   Object.keys(subcategoryOptions).forEach(category => {
@@ -37,57 +33,51 @@ const getFilterOptions = () => {
 const Items = () => {
   const { currentUser, credentialsConfigured } = useAuth();
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 100;
 
+  const isFetchingRef = useRef(false);
+
   const { ref, inView } = useInView({
-    threshold: 0.1,
-    triggerOnce: false
+    threshold: 0,
+    rootMargin: '200px',
   });
 
-  useEffect(() => {
-    if (credentialsConfigured) {
-      fetchItems();
-    }
-  }, [credentialsConfigured]);
-
-  useEffect(() => {
-    if (inView && hasMore) {
-      fetchItems();
-    }
-  }, [inView]);
-
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async (reset = false) => {
+    if (isFetchingRef.current || !hasMore || !credentialsConfigured) return;
+    isFetchingRef.current = true;
     setLoading(true);
     try {
-      const response = await getItems(currentUser.uid, pageSize, offset);
-      if (response.elements.length === 0) {
+      const currentOffset = reset ? 0 : offset;
+      const newItems = await getItems(currentUser.uid, pageSize, currentOffset);
+      if (newItems.length < pageSize) {
         setHasMore(false);
-      } else {
-        const processedItems = response.elements.map(item => {
-          const category = item.categories && item.categories[0] ? item.categories[0].name : 'N/A';
-          const subcategory = item.subcategory || 'N/A';
-          const categoryWithSubcategory = category !== 'N/A' && subcategory !== 'N/A' ? getCategoryWithSubcategory(category, subcategory) : category;
-          const stockCount = item.itemStock ? item.itemStock.stockCount : 0;
-          return {
-            ...item,
-            categoryWithSubcategory,
-            stockCount,
-          };
-        });
-        setItems(prevItems => [...prevItems, ...processedItems]);
-        setOffset(prevOffset => prevOffset + pageSize);
       }
+      setItems(prevItems => reset ? newItems : [...prevItems, ...newItems]);
+      setOffset(currentOffset + pageSize);
     } catch (error) {
       console.error('Error fetching items:', error);
       message.error('Error al cargar los productos');
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, [currentUser.uid, offset, pageSize, hasMore, credentialsConfigured]);
+
+  useEffect(() => {
+    if (credentialsConfigured && items.length === 0) {
+      fetchItems(true);
+    }
+  }, [credentialsConfigured, fetchItems, items.length]);
+
+  useEffect(() => {
+    if (inView && hasMore && !isFetchingRef.current) {
+      fetchItems();
+    }
+  }, [inView, hasMore, fetchItems]);
 
   const columns = [
     {
@@ -129,10 +119,10 @@ const Items = () => {
     },
     {
       title: 'Category',
-      dataIndex: 'categoryWithSubcategory',
-      key: 'categoryWithSubcategory',
+      dataIndex: 'subcategory',
+      key: 'subcategory',
       filters: getFilterOptions(),
-      onFilter: (value, record) => record.categoryWithSubcategory === value,
+      onFilter: (value, record) => record.subcategory === value,
     },
     {
       title: 'Price',
@@ -197,9 +187,20 @@ const Items = () => {
     },
   ];
 
+  const handleAddProduct = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleProductAdded = () => {
+    setOffset(0);
+    setHasMore(true);
+    isFetchingRef.current = false;
+    fetchItems(true);
+  };
+
   return (
     <div>
-      <Button type="primary" onClick={() => setIsModalVisible(true)} style={{ marginBottom: 16 }}>
+      <Button type="primary" onClick={handleAddProduct} style={{ marginBottom: 16 }}>
         + Agregar Producto
       </Button>
       <Table
@@ -207,13 +208,14 @@ const Items = () => {
         dataSource={items}
         loading={loading}
         rowKey="id"
-        pagination={false} // Disable default pagination
+        pagination={false}
       />
-      <div ref={ref} style={{ height: 20 }} />
+      {hasMore && <div ref={ref} style={{ height: 20, margin: '20px 0' }} />}
+      {!hasMore && <div style={{ textAlign: 'center', margin: '20px 0' }}>No hay más productos</div>}
       <AddProduct 
         isModalVisible={isModalVisible} 
         setIsModalVisible={setIsModalVisible} 
-        fetchItems={fetchItems} 
+        fetchItems={handleProductAdded} 
       />
     </div>
   );

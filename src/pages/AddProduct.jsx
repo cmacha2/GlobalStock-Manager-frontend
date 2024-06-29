@@ -129,7 +129,7 @@ const AddProduct = ({ isModalVisible, setIsModalVisible, fetchItems }) => {
         <Form.Item name="cost" label="Cost (USD)" rules={[{ required: true }]}>
           <InputNumber min={0} step={0.01} />
         </Form.Item>
-        <Form.Item name="image" label="Image">
+        {/* <Form.Item name="image" label="Image">
           <Upload
             name="image"
             listType="picture"
@@ -139,10 +139,11 @@ const AddProduct = ({ isModalVisible, setIsModalVisible, fetchItems }) => {
           >
             <Button icon={<UploadOutlined />}>Upload Image</Button>
           </Upload>
-        </Form.Item>
-        <Form.Item>
+        </Form.Item> */}
+       <Form.Item style={{ display: 'flex', justifyContent: 'center' }}>
           <Button type="primary" htmlType="submit">Add Product</Button>
         </Form.Item>
+
       </Form>
     </Modal>
   );

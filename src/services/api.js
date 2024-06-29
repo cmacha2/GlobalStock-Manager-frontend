@@ -34,9 +34,9 @@ export const saveCredentials = async (userId, credentials) => {
 };
 
 // Get items
-export const getItems = async (userId) => {
+export const getItems = async (userId, limit = 100, offset = 0) => {
   try {
-    const response = await api.get(`api/items/${userId}`);
+    const response = await api.get(`/api/items/${userId}?limit=${limit}&offset=${offset}`);
     return response.data;
   } catch (error) {
     console.error('Error getting items:', error.message);
