@@ -16,13 +16,17 @@ const AddProduct = ({ isModalVisible, setIsModalVisible, fetchItems }) => {
 
   const handleAddProduct = async (values) => {
     try {
+      const formatValue = (value) => {
+        return Math.round(parseFloat(value) * 100);
+      };
+
       const formData = new FormData();
       formData.append('name', values.name);
       formData.append('category', values.category);
       formData.append('subcategory', values.subcategory);
-      formData.append('price', values.price * 100);
+      formData.append('price', formatValue(values.price));
       formData.append('stockCount', values.stockCount || 1);
-      formData.append('cost', values.cost * 100);
+      formData.append('cost', formatValue(values.cost));
       formData.append('sku', sku);
       formData.append('userId', currentUser.uid); // Include userId
       if (fileList.length > 0) {
@@ -70,6 +74,13 @@ const AddProduct = ({ isModalVisible, setIsModalVisible, fetchItems }) => {
 
   const handleFileChange = ({ fileList }) => {
     setFileList(fileList);
+  };
+
+  const handleBlur = (field) => {
+    const value = form.getFieldValue(field);
+    if (value !== undefined && value !== null) {
+      form.setFieldsValue({ [field]: parseFloat(value).toFixed(2) });
+    }
   };
 
   const subcategoryOptions = {
@@ -124,26 +135,26 @@ const AddProduct = ({ isModalVisible, setIsModalVisible, fetchItems }) => {
           <Input value={sku} readOnly className="readonly-input" />
         </Form.Item>
         <Form.Item name="price" label="Price (USD)" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={value => value.replace(/\$\s?|(,*)/g, '')}
+            onBlur={() => handleBlur('price')}
+          />
         </Form.Item>
         <Form.Item name="cost" label="Cost (USD)" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={value => value.replace(/\$\s?|(,*)/g, '')}
+            onBlur={() => handleBlur('cost')}
+          />
         </Form.Item>
-        {/* <Form.Item name="image" label="Image">
-          <Upload
-            name="image"
-            listType="picture"
-            beforeUpload={() => false}
-            onChange={handleFileChange}
-            fileList={fileList}
-          >
-            <Button icon={<UploadOutlined />}>Upload Image</Button>
-          </Upload>
-        </Form.Item> */}
-       <Form.Item style={{ display: 'flex', justifyContent: 'center' }}>
+        <Form.Item style={{ display: 'flex', justifyContent: 'center' }}>
           <Button type="primary" htmlType="submit">Add Product</Button>
         </Form.Item>
-
       </Form>
     </Modal>
   );
